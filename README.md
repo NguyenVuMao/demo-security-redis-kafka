@@ -3,7 +3,8 @@
 
 15/5: Sử dụng redis và kafka
 + Sử dụng Kafka: khi thực hiện chức năng đăng ký và lưu lại vào db send 1 đoạn string và project 3 lắng nghe 
-+ Sử dụng Redis: sau khi thực hiện đăng ký thành công sẽ gửi lại token lên redis để lưu 
++ Sử dụng Redis: sau khi thực hiện đăng ký thành công sẽ gửi lại token lên redis để lưu
+  -> Test thông luồng đăng ký project 1 -> project 2 -> lưu redis và project 3 lắng nghe
 
 
 
