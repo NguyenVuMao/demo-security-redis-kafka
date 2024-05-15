@@ -1,8 +1,11 @@
 package com.example.project2.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.example.project2.dto.request.ChangePasswordRequest;
 import com.example.project2.entity.User;
@@ -11,9 +14,13 @@ import com.example.project2.repository.UserRepository;
 import java.security.Principal;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
+    @Value("${application.kafka.eledevo-topic}")
+    private String eledevoTopic;
+    private final KafkaTemplate<String,String> kafkaTemplate;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository repository;
 

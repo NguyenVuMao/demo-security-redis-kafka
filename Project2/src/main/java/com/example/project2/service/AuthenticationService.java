@@ -1,11 +1,14 @@
 package com.example.project2.service;
 
 
+import com.example.project2.repository.redis.BaseRedisRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,12 +28,17 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
+
+    @Value("${application.kafka.eledevo-topic}")
+    private String eledevoTopic;
+    private final KafkaTemplate<String,String> kafkaTemplate;
+
     private final UserRepository repository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-
+    private final BaseRedisRepository baseRedisRepository;
     public AuthenticationResponse register(RegisterRequest request) {
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -43,6 +51,9 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
+
+        kafkaTemplate.send(eledevoTopic,"check");
+        baseRedisRepository.hashSet("AXC",user.getEmail(),jwtToken);
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
@@ -62,6 +73,7 @@ public class AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
         saveUserToken(user, jwtToken);
+
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
